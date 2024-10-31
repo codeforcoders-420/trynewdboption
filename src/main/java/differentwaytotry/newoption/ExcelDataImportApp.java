@@ -37,6 +37,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -79,6 +80,9 @@ public class ExcelDataImportApp extends Application {
 	private static final String ACCESS_PATH = "C:\\Program Files (x86)\\Microsoft Office\\root\\Office16\\MSACCESS.EXE";
 	private static final String DB_PATH = "C:\\Users\\rajas\\Desktop\\Database\\filecompare.accdb";
 	private static final String SCRUB_RULES_FILE = "C:\\Users\\rajas\\Desktop\\Database\\Scrub rules.xlsx"; // Update with actual path
+	private static final List<String> EXPECTED_HEADERS = Arrays.asList("Proc_code", "CMSAdd", "CMSTerm", "Modifiers", "Service", 
+            "Service desc", "RateType", "Pricing Method", 
+            "Rate Eff", "Rate Term", "MAxFee");
 
 	private TextField lastWeekFilePathField;
 	private TextField currentWeekFilePathField;
@@ -136,6 +140,39 @@ public class ExcelDataImportApp extends Application {
 			filePathField.setText(selectedFile.getAbsolutePath());
 		}
 	}
+	
+	 private void updateHeadersIfNeeded(String filePath) {
+	        try (FileInputStream fis = new FileInputStream(filePath);
+	             Workbook workbook = new XSSFWorkbook(fis)) {
+
+	            Sheet sheet = workbook.getSheetAt(0);
+	            Row headerRow = sheet.getRow(0);
+
+	            if (headerRow == null) {
+	                headerRow = sheet.createRow(0);
+	            }
+
+	            // Check each header and update if necessary
+	            for (int i = 0; i < EXPECTED_HEADERS.size(); i++) {
+	                Cell cell = headerRow.getCell(i);
+	                if (cell == null || !EXPECTED_HEADERS.get(i).equalsIgnoreCase(cell.getStringCellValue().trim())) {
+	                    // Update the cell with the expected header
+	                    cell = headerRow.createCell(i);
+	                    cell.setCellValue(EXPECTED_HEADERS.get(i));
+	                }
+	                sheet.autoSizeColumn(i);
+	            }
+
+	            // Save the updated Excel file to ensure headers are correct
+	            try (FileOutputStream fos = new FileOutputStream(new File(filePath))) {
+	                workbook.write(fos);
+	                System.out.println("Headers verified and updated if needed.");
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            showAlert("Header Update Error", "An error occurred while verifying or updating the headers.");
+	        }
+	    }
 
 	private void submitFilePaths() {
 		String lastWeekFilePath = lastWeekFilePathField.getText();
@@ -145,6 +182,9 @@ public class ExcelDataImportApp extends Application {
 			showAlert("Missing File", "Please select both the Last Week and Current Week files before submitting.");
 		} else {
 			try {
+				updateHeadersIfNeeded(lastWeekFilePath);
+                updateHeadersIfNeeded(currentWeekFilePath);
+                
 				runVBAScript(lastWeekFilePath, currentWeekFilePath);
 				runComparisonQueriesnew();
 				applyScrubRules(readScrubRules(SCRUB_RULES_FILE));
