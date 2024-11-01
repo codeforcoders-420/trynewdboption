@@ -615,6 +615,27 @@ public class ExcelDataImportApp extends Application {
 			System.out.println("VBA script created successfully at " + vbaScriptPath);
 		}
 	}
+	
+	private void exportExactMatchQueryToExcel() {
+        try {
+            String vbaCommand = MSACCESS_PATH + " \"" + DATABASE_PATH + "\" /x ExportExactMatchQueryToExcel";
+            Process p = Runtime.getRuntime().exec(vbaCommand);
+            p.waitFor();
+            System.out.println("ExactMatchQuery results have been exported to Excel.");
+            showAlert("Export Complete", "The exact match query results have been exported to Excel.");
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            showAlert("Error", "An error occurred while exporting the query results to Excel.");
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 
 	private void showAlert(String title, String message) {
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
