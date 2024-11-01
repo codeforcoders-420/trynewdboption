@@ -1,0 +1,41 @@
+Dim accessApp
+Set accessApp = CreateObject("Access.Application")
+
+' Open the Access database in hidden mode
+accessApp.Visible = False
+accessApp.OpenCurrentDatabase "C:\Users\rajas\Desktop\Database\filecompare.accdb"
+
+' Run the macro (e.g., "RunExportExactMatch")
+accessApp.Run "RunExportExactMatch"
+
+' Close the database and quit Access
+accessApp.Quit
+Set accessApp = Nothing
+
+import java.io.IOException;
+
+public class ExcelDataImportApp {
+
+    private static final String VBS_SCRIPT_PATH = "C:\\Users\\rajas\\Desktop\\Database\\RunAccessMacro.vbs";
+
+    private void exportExactMatchQueryToExcel() {
+        try {
+            String command = "wscript \"" + VBS_SCRIPT_PATH + "\"";
+            Process p = Runtime.getRuntime().exec(command);
+            p.waitFor();
+            System.out.println("ExactMatchQuery results have been exported to Excel.");
+            showAlert("Export Complete", "The exact match query results have been exported to Excel.");
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            showAlert("Error", "An error occurred while exporting the query results to Excel.");
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+}
