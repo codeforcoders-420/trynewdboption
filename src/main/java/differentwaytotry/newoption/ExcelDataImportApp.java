@@ -628,6 +628,15 @@ public class ExcelDataImportApp extends Application {
             showAlert("Error", "An error occurred while exporting the query results to Excel.");
         }
     }
+	
+	Public Function ExportExactMatchQueryToExcel()
+    Dim excelFilePath As String
+    excelFilePath = "C:\Users\rajas\Desktop\Database\ExactMatch_Results.xlsx"  ' Set the path for export
+
+    ' Export the ExactMatchQuery to Excel
+    DoCmd.TransferSpreadsheet acExport, acSpreadsheetTypeExcel12Xml, "ExactMatchQuery", excelFilePath, True
+    MsgBox "Exact match query results have been exported to " & excelFilePath, vbInformation
+End Function
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
