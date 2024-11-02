@@ -39,3 +39,52 @@ public class ExcelDataImportApp {
         alert.showAndWait();
     }
 }
+
+DELETE FROM Lastweekdata
+WHERE EXISTS (
+    SELECT 1 FROM ExactMatch AS em
+    WHERE Lastweekdata.Proc_code = em.Proc_code
+      AND Lastweekdata.CMSAdd = em.CMSAdd
+      AND Lastweekdata.CMSTerm = em.CMSTerm
+      AND Lastweekdata.Modifiers = em.Modifiers
+      AND Lastweekdata.Service = em.Service
+      AND Lastweekdata.[Service desc] = em.[Service desc]
+      AND Lastweekdata.RateType = em.RateType
+      AND Lastweekdata.[Pricing Method] = em.[Pricing Method]
+      AND Lastweekdata.[Rate Eff] = em.[Rate Eff]
+      AND Lastweekdata.[Rate Term] = em.[Rate Term]
+      AND Lastweekdata.MAxFee = em.MAxFee
+);
+
+SELECT lw.Proc_code, lw.CMSAdd, lw.CMSTerm, lw.Modifiers, lw.Service, lw.[Service desc],
+       lw.RateType, lw.[Pricing Method], lw.[Rate Eff], lw.[Rate Term], lw.MAxFee,
+       cw.Proc_code AS Current_Proc_code, cw.CMSAdd AS Current_CMSAdd, cw.CMSTerm AS Current_CMSTerm,
+       cw.Modifiers AS Current_Modifiers, cw.Service AS Current_Service, cw.[Service desc] AS Current_Service_desc,
+       cw.RateType AS Current_RateType, cw.[Pricing Method] AS Current_Pricing_Method,
+       cw.[Rate Eff] AS Current_Rate_Eff, cw.[Rate Term] AS Current_Rate_Term, cw.MAxFee AS Current_MaxFee
+FROM Lastweekdata AS lw
+LEFT JOIN CurrentWeekData AS cw
+ON lw.Proc_code = cw.Proc_code
+   AND lw.CMSAdd = cw.CMSAdd
+   AND lw.CMSTerm = cw.CMSTerm
+   AND lw.Modifiers = cw.Modifiers
+   AND lw.Service = cw.Service
+   AND lw.[Service desc] = cw.[Service desc]
+   AND lw.RateType = cw.RateType
+   AND lw.[Pricing Method] = cw.[Pricing Method]
+   AND lw.[Rate Eff] = cw.[Rate Eff]
+   AND lw.[Rate Term] = cw.[Rate Term]
+   AND (lw.MAxFee = cw.MAxFee OR (lw.MAxFee IS NULL AND cw.MAxFee IS NULL))
+WHERE cw.Proc_code IS NULL  -- Shows records in Lastweekdata not exactly matching any record in CurrentWeekdata
+OR (
+    lw.CMSAdd <> cw.CMSAdd
+    OR lw.CMSTerm <> cw.CMSTerm
+    OR lw.Modifiers <> cw.Modifiers
+    OR lw.Service <> cw.Service
+    OR lw.[Service desc] <> cw.[Service desc]
+    OR lw.RateType <> cw.RateType
+    OR lw.[Pricing Method] <> cw.[Pricing Method]
+    OR lw.[Rate Eff] <> cw.[Rate Eff]
+    OR lw.[Rate Term] <> cw.[Rate Term]
+    OR (lw.MAxFee <> cw.MAxFee AND NOT (lw.MAxFee IS NULL AND cw.MAxFee IS NULL))
+);
